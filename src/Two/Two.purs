@@ -20,6 +20,11 @@ import Node.FS.Aff (readTextFile)
 --           depth and forward position after following all commands. Return the
 --           product of the depth and position.
 
+-- Part Two: Same as above except commands have non-intuitive meaning:
+--             * "aim" starts at 0
+--             * up and down affect aim
+--             * forward increases forward position by N and depth by N*aim
+
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Two/input"
