@@ -1,4 +1,6 @@
-module Main where
+module AdventOfCode.Twenty21
+  ( main
+  ) where
 
 import Prelude
 
