@@ -15,26 +15,13 @@ import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
 
--- This report indicates that, scanning outward from the submarine, the sonar sweep found depths of 199, 200, 208, 210, and so on.
--- 
--- The first order of business is to figure out how quickly the depth increases, just so you know what you're dealing with - you never know if the keys will get carried into deeper water by an ocean current or a fish or something.
--- 
--- To do this, count the number of times a depth measurement increases from the previous measurement. (There is no measurement before the first measurement.) In the example above, the changes are as follows:
--- 
--- 199 (N/A - no previous measurement)
--- 200 (increased)
--- 208 (increased)
--- 210 (increased)
--- 200 (decreased)
--- 207 (increased)
--- 240 (increased)
--- 269 (increased)
--- 260 (decreased)
--- 263 (increased)
--- 
--- In this example, there are 7 measurements that are larger than the previous measurement.
--- 
--- How many measurements are larger than the previous measurement?
+-- Part One: Given a list of integers, return the number of times a number is
+--           larger than the preceding number
+
+-- Part Two: Given a list of integers, return the number of times the sum of
+--           three consecutive numbers is larger than the sum of the previous
+--           three consecutive numbers (with overlap, i.e. if the list is [1, 2,
+--           3, 4, 5], then compare (1+2+3), (2+3+4), (3+4+5))
 
 main :: Effect Unit
 main = launchAff_ do
