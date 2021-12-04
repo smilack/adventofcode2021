@@ -11,6 +11,7 @@ You can edit this file as you like.
   , "integers"
   , "lists"
   , "maybe"
+  , "newtype"
   , "node-buffer"
   , "node-fs-aff"
   , "prelude"
