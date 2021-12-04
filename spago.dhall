@@ -9,6 +9,7 @@ You can edit this file as you like.
   , "effect"
   , "foldable-traversable"
   , "integers"
+  , "lists"
   , "maybe"
   , "node-buffer"
   , "node-fs-aff"

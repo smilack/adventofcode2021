@@ -5,6 +5,7 @@ module AdventOfCode.Twenty21.One
 import Prelude
 import Data.Int (fromString)
 import Data.Foldable (foldl)
+import Data.List (List(..), fromFoldable, toUnfoldable, (:))
 import Data.Maybe (fromMaybe)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
@@ -29,9 +30,13 @@ main = launchAff_ do
   let
     measurements = parseIntArray input
     increases = countIncreases measurements
+    sums = slidingSums measurements
+    slidingIncreases = countIncreases sums
   liftEffect do
-    log "Day one answer:"
+    log "Number of increases:"
     logShow increases
+    log "Number of increases (sliding sum):"
+    logShow slidingIncreases
 
 parseIntArray :: String -> Array Int
 parseIntArray =
@@ -49,3 +54,10 @@ countIncreases =
     | otherwise = { last: num, increases }
 
 type Acc = { last :: Int, increases :: Int }
+
+slidingSums :: Array Int -> Array Int
+slidingSums = toUnfoldable <<< go <<< fromFoldable
+  where
+  go :: List Int -> List Int
+  go (a : b : c : xs) = (a + b + c) : go (b : c : xs)
+  go _ = Nil
