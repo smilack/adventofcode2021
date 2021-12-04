@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# usage e.g.:
+# > ./create Four
+
+mkdir src/$1
+sed 's/$DAY/'"$1"'/' src/Template > src/$1/$1.purs
+touch src/$1/input
