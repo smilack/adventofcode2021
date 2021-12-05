@@ -1,6 +1,4 @@
-module AdventOfCode.Twenty21.Five
-  ( main
-  ) where
+module AdventOfCode.Twenty21.Five where
 
 import Prelude
 import Data.Array (concat)
