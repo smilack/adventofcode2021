@@ -6,3 +6,5 @@
 mkdir src/$1
 sed 's/$DAY/'"$1"'/' src/Template > src/$1/$1.purs
 touch src/$1/input
+mkdir test/$1
+sed 's/$DAY/'"$1"'/' test/Template > test/$1/$1.purs

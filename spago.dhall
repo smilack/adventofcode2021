@@ -18,6 +18,7 @@ You can edit this file as you like.
   , "point-free"
   , "prelude"
   , "psci-support"
+  , "quickcheck"
   , "strings"
   ]
 , packages = ./packages.dhall
