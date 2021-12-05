@@ -14,6 +14,7 @@ You can edit this file as you like.
   , "newtype"
   , "node-buffer"
   , "node-fs-aff"
+  , "point-free"
   , "prelude"
   , "psci-support"
   , "strings"

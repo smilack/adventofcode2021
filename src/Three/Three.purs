@@ -4,8 +4,8 @@ module AdventOfCode.Twenty21.Three
 
 import Prelude
 import Data.Int (binary, fromStringAs)
-import Data.List (List(..), (:), fromFoldable, transpose, length, toUnfoldable, dropEnd, find)
-import Data.Maybe (Maybe(..), fromMaybe)
+import Data.List (List(..), (:), fromFoldable, transpose, length, toUnfoldable, filter, index)
+import Data.Maybe (fromMaybe)
 import Data.String (split)
 import Data.String.CodeUnits (toCharArray, fromCharArray)
 import Data.String.Pattern (Pattern(..))
@@ -15,6 +15,7 @@ import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
+import PointFree ((<..))
 
 -- Part One: Given a list of binary numbers of equal length, find the most and
 --           least common digit in each column. Construct new binary numbers,
@@ -24,8 +25,9 @@ import Node.FS.Aff (readTextFile)
 -- Part Two: Find the numbers as above except:
 --             * For the most common, use 1 if there are equal 0s and 1s
 --             * For the least common, use 0 if there are equal 0s and 1s
---           Then, find the two entries that most closely match these numbers
---           (starting from the left). Return the product of those two entries.
+--             * Calculate each bit after eliminating the numbers that don't
+--               match the previous bit
+--           Return the product of the two remaining numbers.
 
 main :: Effect Unit
 main = launchAff_ do
@@ -39,10 +41,9 @@ main = launchAff_ do
     leastCommonDigs = invertBinary mostCommonDigs
     leastCommonInt = binaryListToInt leastCommonDigs
     -- part two
-    mcds = map (mostCommonWithPreference '1') frequencies
-    mci = binaryListToInt $ findClosest mcds lists
-    lcds = invertBinary mcds
-    lci = binaryListToInt $ findClosest lcds lists
+    most = binaryListToInt $ findMatch getMostCommonDigit lists
+    least = binaryListToInt $ findMatch getLeastCommonDigit lists
+
   liftEffect do
     log "Part 1:"
     log "Most common digits:"
@@ -52,24 +53,12 @@ main = launchAff_ do
     log "Product:"
     logShow $ mostCommonInt * leastCommonInt
     log "Part 2:"
-    log "Closest to most common digits:"
-    logShow mci
-    log "Closest to least common digits:"
-    logShow lci
-    log "Product:"
-    logShow $ mci * lci
-    log "Debug:"
     log "Most:"
-    logShow mostCommonDigs
-    logShow mcds
+    logShow most
     log "Least:"
-    logShow leastCommonDigs
-    logShow lcds
-    log "Any evens?"
-    logShow $ map isEven frequencies
-
-isEven :: List Char -> Char
-isEven xs = if count '0' xs == count '1' xs then 'y' else 'n'
+    logShow least
+    log "Product:"
+    logShow $ most * least
 
 getBinaryArrays :: String -> Array (Array Char)
 getBinaryArrays = map toCharArray <<< split (Pattern "\n")
@@ -88,6 +77,12 @@ getMostCommonDigit xs = if count '0' xs > half then '0' else '1'
   where
   half = length xs / 2
 
+getLeastCommonDigit :: List Char -> Char
+getLeastCommonDigit xs = if count '1' xs < count '0' xs then '1' else '0'
+
+nth :: Int -> List Char -> Char
+nth = fromMaybe '_' <.. flip index
+
 invertBinary :: List Char -> List Char
 invertBinary = map f
   where
@@ -102,29 +97,13 @@ binaryListToInt =
     <<< fromCharArray
     <<< toUnfoldable
 
-mostCommonWithPreference :: Char -> List Char -> Char
-mostCommonWithPreference preferred xs =
-  if zeroes > half then
-    '0'
-  else if zeroes == half then
-    preferred
-  else
-    '1'
+findMatch :: (List Char -> Char) -> List (List Char) -> List Char
+findMatch getDigit = go 0
   where
-  zeroes = count '0' xs
-  half = length xs / 2
-
-findClosest :: forall a. Eq a => List a -> List (List a) -> List a
-findClosest needle haystack =
-  case find (match needle) haystack of
-    Just closest -> closest
-    Nothing -> findClosest (dropEnd 1 needle) haystack
-
-  where
-  match :: List a -> List a -> Boolean
-  match (a : as) (b : bs) =
-    if a == b then
-      match as bs
-    else
-      false
-  match _ _ = true
+  go _ (x : Nil) = x
+  go _ Nil = '0' : Nil
+  go n haystack =
+    let
+      target = getDigit $ map (nth n) haystack
+    in
+      go (n + 1) $ filter ((_ == target) <<< nth n) haystack
