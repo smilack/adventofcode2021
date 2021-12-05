@@ -3,9 +3,10 @@ module AdventOfCode.Twenty21.Four
   ) where
 
 import Prelude
-import Data.Array (filter)
+import Data.Array (filter, concat, any, null, delete)
+import Data.Foldable (sum)
 import Data.Int (fromString)
-import Data.List (List(..), (:), head, tail, fromFoldable, transpose, toUnfoldable, length)
+import Data.List (List(..), (:), head, tail, fromFoldable, transpose, toUnfoldable, find)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
@@ -28,13 +29,15 @@ main = launchAff_ do
     lines = fromFoldable $ split (Pattern "\n") input
     draws = getDraws $ head $ lines
     boards = getBoards $ tail $ lines
+    winner = findWinner draws boards
+    score = calculateScore winner
   liftEffect do
     log "Draws:"
     logShow draws
-    log "Board 1:"
-    logShow $ head boards
-    log "Num boards:"
-    logShow $ length boards
+    log "Winning board:"
+    logShow $ winner.board.rows
+    log "Score:"
+    logShow $ score
 
 getDraws :: Maybe String -> List Int
 getDraws = case _ of
@@ -76,6 +79,29 @@ transposeA =
     <<< map fromFoldable
     <<< fromFoldable
 
--- plan: As each number is drawn, filter it from all boards (all rows and cols
---  of each board). If any row or col is empty, that board wins. Pick the rows
---  or cols of that board and sum them up
+type Winner = { board :: Board, draw :: Int }
+
+findWinner :: List Int -> List Board -> Winner
+findWinner = go
+  where
+  go Nil _ = { board: { rows: [], cols: [] }, draw: 0 }
+  go (draw : draws) boards =
+    let
+      boardsWithoutDraw = map (remove draw) boards
+      winner = find hasWon boardsWithoutDraw
+    in
+      case winner of
+        Just board -> { board, draw }
+        Nothing -> go draws boardsWithoutDraw
+
+  remove draw { rows, cols } =
+    { rows: map (delete draw) rows
+    , cols: map (delete draw) cols
+    }
+
+  hasWon board = any null $ board.rows <> board.cols
+
+calculateScore :: Winner -> Int
+calculateScore { board, draw } = uncalledSum * draw
+  where
+  uncalledSum = sum $ concat board.rows
