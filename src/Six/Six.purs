@@ -2,20 +2,41 @@ module AdventOfCode.Twenty21.Six where
 
 import Prelude
 import Data.Int (fromString)
-import Data.List (List(..), (:), fromFoldable, catMaybes)
+import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop, foldl)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
-import Effect.Aff (launchAff_)
+import Effect.Aff (Aff, launchAff_, forkAff, joinFiber, parallel)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
 import Node.FS.Aff (readTextFile)
+import PointFree ((<..))
+
+-- Part One: Simulate fish lifecycle with rules:
+--             * Age is represented as days until next spawn
+--             * Decrement age each day
+--             * A fish starting the day at age 0 is reset to 6 and a new fish
+--               with age 8 appears
+--           How many fish are there after 80 days?
 
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Six/input"
-  liftEffect $ log input
+  let
+    ages = parseAges input
+    chunks = chunksOf 10 ages
+  fibers <- map (forkAff <<< asyncSimulate 80) chunks
+  -- results <- map joinFiber fibers
+  -- let
+  --   nFish = foldl (+) results
+  liftEffect do
+    log "Day Six"
+    log "Input:"
+    logShow ages
+    log "num fish"
+
+--logShow nFish
 
 parseAges :: String -> List Int
 parseAges =
@@ -23,3 +44,31 @@ parseAges =
     <<< map fromString
     <<< fromFoldable
     <<< split (Pattern ",")
+
+asyncSimulate :: Int -> List Int -> Aff (List Int)
+asyncSimulate = pure <.. simulate
+
+simulate :: Int -> List Int -> List Int
+simulate = go
+  where
+  go 0 l = l
+  go n l = go (n - 1) (sim l)
+
+  sim Nil = Nil
+  sim (f : fs)
+    | f == 0 = 6 : 8 : sim fs
+    | otherwise = (f - 1) : sim fs
+
+-- chunksOf -- From Haskell split library
+-- https://github.com/byorgey/split
+-- Copyright (c) 2008 Brent Yorgey, Louis Wasserman
+-- https://github.com/byorgey/split/blob/master/LICENSE
+chunksOf :: forall e. Int -> List e -> List (List e)
+chunksOf i ls = map (take i) (build (splitter ls))
+  where
+  build :: forall a. ((a -> List a -> List a) -> List a -> List a) -> List a
+  build g = g (:) Nil
+
+  splitter :: forall a. List e -> (List e -> a -> a) -> a -> a
+  splitter Nil _ n = n
+  splitter l c n = l `c` splitter (drop i l) c n
