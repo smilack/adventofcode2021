@@ -21,21 +21,31 @@ import PointFree ((<..))
 --               with age 8 appears
 --           How many fish are there after 80 days?
 
+-- Part Two: How many fish after 256 days?
+
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Six/input"
   let
     ages = parseAges input
     chunks = chunksOf 10 ages
+    chunks' = chunksOf 10 ages
   nFishChunks <- parSequence $ map (asyncSimulate 80) chunks
+  nFishChunks' <- parSequence $ map (asyncSimulate 256) chunks'
+  -- will need to do partial calculations then re-chunk
   let
     nFish = foldl (+) 0 nFishChunks
+    nFish' = foldl (+) 0 nFishChunks'
   liftEffect do
     log "Day Six"
     log "Input:"
     logShow ages
+    log "Part 1:"
     log "num fish"
     logShow nFish
+    log "Part 2:"
+    log "num fish"
+    logShow nFish'
 
 parseAges :: String -> List Int
 parseAges =
