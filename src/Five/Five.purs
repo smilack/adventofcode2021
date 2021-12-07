@@ -1,7 +1,7 @@
 module AdventOfCode.Twenty21.Five where
 
 import Prelude
-import Data.Array (concat)
+import Data.Array (concat, filter)
 import Data.Int (fromString)
 import Data.Maybe (Maybe(..))
 import Data.String (split)
@@ -23,6 +23,7 @@ main = launchAff_ do
   input <- readTextFile UTF8 "./src/Five/input"
   let
     lines = parseLines input
+    axialLines = filter isAxial lines
 
   liftEffect do
     log "Part One:"
@@ -46,3 +47,6 @@ type Line = { x1 :: Int, y1 :: Int, x2 :: Int, y2 :: Int }
 mkLine :: Maybe (Array Int) -> Line
 mkLine (Just [ x1, y1, x2, y2 ]) = { x1, y1, x2, y2 }
 mkLine _ = { x1: 0, y1: 0, x2: 0, y2: 0 }
+
+isAxial :: Line -> Boolean
+isAxial { x1, y1, x2, y2 } = x1 == x2 || y1 == y2
