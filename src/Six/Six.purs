@@ -1,12 +1,13 @@
 module AdventOfCode.Twenty21.Six where
 
 import Prelude
+import Control.Parallel (parSequence)
 import Data.Int (fromString)
 import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop, foldl)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
-import Effect.Aff (Aff, launchAff_, forkAff, joinFiber, parallel)
+import Effect.Aff (Aff, launchAff_)
 import Effect.Class (liftEffect)
 import Effect.Console (log, logShow)
 import Node.Encoding (Encoding(..))
@@ -26,17 +27,15 @@ main = launchAff_ do
   let
     ages = parseAges input
     chunks = chunksOf 10 ages
-  fibers <- map (forkAff <<< asyncSimulate 80) chunks
-  -- results <- map joinFiber fibers
-  -- let
-  --   nFish = foldl (+) results
+  nFishChunks <- parSequence $ map (asyncSimulate 80) chunks
+  let
+    nFish = foldl (+) 0 nFishChunks
   liftEffect do
     log "Day Six"
     log "Input:"
     logShow ages
     log "num fish"
-
---logShow nFish
+    logShow nFish
 
 parseAges :: String -> List Int
 parseAges =
@@ -45,8 +44,8 @@ parseAges =
     <<< fromFoldable
     <<< split (Pattern ",")
 
-asyncSimulate :: Int -> List Int -> Aff (List Int)
-asyncSimulate = pure <.. simulate
+asyncSimulate :: Int -> List Int -> Aff Int
+asyncSimulate = (pure <<< length) <.. simulate
 
 simulate :: Int -> List Int -> List Int
 simulate = go

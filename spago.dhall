@@ -16,6 +16,7 @@ You can edit this file as you like.
   , "node-buffer"
   , "node-fs-aff"
   , "ordered-collections"
+  , "parallel"
   , "point-free"
   , "prelude"
   , "psci-support"
