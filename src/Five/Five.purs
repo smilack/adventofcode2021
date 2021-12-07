@@ -3,7 +3,7 @@ module AdventOfCode.Twenty21.Five where
 import Prelude
 import Data.Array (concat) as A
 import Data.Int (fromString)
-import Data.List (List(..), (:), filter, fromFoldable, catMaybes, range, concat, length)
+import Data.List (List(..), (:), filter, fromFoldable, catMaybes, range, concat, length, zipWith)
 import Data.Map (Map, empty, insertWith, values)
 import Data.Maybe (Maybe(..))
 import Data.String (split)
@@ -20,6 +20,8 @@ import Node.FS.Aff (readTextFile)
 --           vertical and horizontal ones, return the number of points where at
 --           least two lines overlap.
 
+-- Part Two: Same but including diagonal (slope +/- 1) lines.
+
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Five/input"
@@ -29,11 +31,19 @@ main = launchAff_ do
     allPoints = concat $ map enumerate axialLines
     spots = tallySpots allPoints
     nHotspots = countHotspots spots
+    --part 2
+    reallyAllLines = map toSuper lines
+    reallyAllPoints = concat $ map enumerate' reallyAllLines
+    spots' = tallySpots reallyAllPoints
+    nHotspots' = countHotspots spots'
 
   liftEffect do
     log "Part One:"
     log "Number of spots:"
     logShow nHotspots
+    log "Part Two:"
+    log "Number of spots:"
+    logShow nHotspots'
 
 parseLines :: String -> List Line
 parseLines = fromFoldable <<< map parseLine <<< split (Pattern "\n")
@@ -53,6 +63,10 @@ data AxialLine
   = Hori { x1 :: Int, x2 :: Int, y :: Int }
   | Verti { x :: Int, y1 :: Int, y2 :: Int }
 
+data SuperLine
+  = Axial AxialLine
+  | Diag Line
+
 type Point = { x :: Int, y :: Int }
 
 mkLine :: Maybe (Array Int) -> Line
@@ -68,10 +82,25 @@ toAxial { x1, y1, x2, y2 } =
   else
     Nothing
 
+toSuper :: Line -> SuperLine
+toSuper line@{ x1, y1, x2, y2 } =
+  if x1 == x2 then
+    Axial $ Verti { x: x1, y1, y2 }
+  else if y1 == y2 then
+    Axial $ Hori { x1, x2, y: y1 }
+  else
+    Diag line
+
 enumerate :: AxialLine -> List Point
 enumerate = case _ of
   Hori { x1, x2, y } -> map (\x -> { x, y }) $ range x1 x2
   Verti { x, y1, y2 } -> map (\y -> { x, y }) $ range y1 y2
+
+enumerate' :: SuperLine -> List Point
+enumerate' = case _ of
+  Axial a -> enumerate a
+  Diag { x1, y1, x2, y2 } ->
+    zipWith (\x y -> { x, y }) (range x1 x2) (range y1 y2)
 
 tallySpots :: List Point -> Map Point Int
 tallySpots = go empty
