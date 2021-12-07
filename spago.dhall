@@ -15,6 +15,7 @@ You can edit this file as you like.
   , "newtype"
   , "node-buffer"
   , "node-fs-aff"
+  , "ordered-collections"
   , "point-free"
   , "prelude"
   , "psci-support"

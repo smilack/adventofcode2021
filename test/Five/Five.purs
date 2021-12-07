@@ -4,6 +4,8 @@ module Test.AdventOfCode.Twenty21.Five
 
 import Prelude
 import AdventOfCode.Twenty21.Five
+import Data.List (length, group)
+import Data.Maybe (isJust)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
@@ -20,13 +22,21 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Five" do
     it "parses input" $ quickCheck testParseLine
     describe "Part 1" do
-      describe "consider only horizontal and vertical lines" isAxialSpec
+      describe "axial checker" isAxialSpec
+      it "processes axial lines" $ quickCheck testToAxial
+      describe "enumerate" enumerateSpec
 
 testParseLine :: Int -> Int -> Int -> Int -> Result
 testParseLine x1 y1 x2 y2 =
   ({ x1, y1, x2, y2 } === _) $ parseLine toString
   where
   toString = show x1 <> "," <> show y1 <> " -> " <> show x2 <> "," <> show y2
+
+testToAxial :: Line -> Result
+testToAxial line = isAxial line === isJust (toAxial line)
+
+isAxial :: Line -> Boolean
+isAxial { x1, y1, x2, y2 } = x1 == x2 || y1 == y2
 
 isAxialSpec ∷ Spec Unit
 isAxialSpec = do
@@ -38,3 +48,10 @@ isAxialSpec = do
     isAxial { x1: 613, y1: 694, x2: 864, y2: 945 } `shouldEqual` false
   it "rejects diagonals (- slope)" do
     isAxial { x1: 650, y1: 290, x2: 580, y2: 360 } `shouldEqual` false
+
+enumerateSpec :: Spec Unit
+enumerateSpec = do
+  it "all hori points have same y" do
+    length (group $ map (_.y) $ enumerate $ Hori { x1: 962, y: 644, x2: 93 }) `shouldEqual` 1
+  it "all verti points have same x" do
+    length (group $ map (_.x) $ enumerate $ Verti { y1: 964, x: 59, y2: 841 }) `shouldEqual` 1
