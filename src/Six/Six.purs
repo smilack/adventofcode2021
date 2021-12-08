@@ -3,7 +3,7 @@ module AdventOfCode.Twenty21.Six where
 import Prelude
 import Control.Parallel (parSequence)
 import Data.Int (fromString)
-import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop, foldl)
+import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop, foldl, concat)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
@@ -29,13 +29,11 @@ main = launchAff_ do
   let
     ages = parseAges input
     chunks = chunksOf 10 ages
-    chunks' = chunksOf 10 ages
   nFishChunks <- parSequence $ map (asyncSimulate 80) chunks
-  nFishChunks' <- parSequence $ map (asyncSimulate 256) chunks'
+  nFish' <- bigSim ages
   -- will need to do partial calculations then re-chunk
   let
     nFish = foldl (+) 0 nFishChunks
-    nFish' = foldl (+) 0 nFishChunks'
   liftEffect do
     log "Day Six"
     log "Input:"
@@ -56,6 +54,26 @@ parseAges =
 
 asyncSimulate :: Int -> List Int -> Aff Int
 asyncSimulate = (pure <<< length) <.. simulate
+
+bigSim :: List Int -> Aff Int
+bigSim = go 256
+  where
+  go :: Int -> List Int -> Aff Int
+  go 0 ages = pure $ length ages
+  go n ages = do
+    part <- partialSim 16 $ chunksOf 3000 ages
+    liftEffect do
+      log "n"
+      logShow n
+      log "length"
+      logShow $ length $ concat part
+    go (n - 16) $ concat part
+
+  partialSim :: Int -> List (List Int) -> Aff (List (List Int))
+  partialSim days chunks = parSequence $ map (sim days) chunks
+
+  sim :: Int -> List Int -> Aff (List Int)
+  sim = pure <.. simulate
 
 simulate :: Int -> List Int -> List Int
 simulate = go
