@@ -2,18 +2,14 @@ module Test.AdventOfCode.Twenty21.Six
   ( main
   ) where
 
-import Prelude
-import AdventOfCode.Twenty21.Six
+import Prelude (Unit, discard, map, ($))
+import AdventOfCode.Twenty21.Six (FishTrack(..), age, ageBy, fillTrack, parseAges)
 import Data.BigInt (fromInt)
 import Data.List (List(..), (:))
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 

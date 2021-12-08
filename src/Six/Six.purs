@@ -2,14 +2,14 @@ module AdventOfCode.Twenty21.Six where
 
 import Prelude
 import Control.Parallel (parSequence)
-import Data.Array (zipWith, modifyAt)
+import Data.Array (modifyAt)
 import Data.BigInt (BigInt, fromInt)
 import Data.Foldable (sum)
 import Data.Function (applyN)
 import Data.Int (fromString)
 import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop)
 import Data.Maybe (Maybe(..))
-import Data.Newtype (class Newtype, over2)
+import Data.Newtype (class Newtype)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
@@ -97,11 +97,8 @@ derive instance Eq FishTrack
 instance Show FishTrack where
   show (FishTrack t) = "FishTrack " <> show t
 
-instance Semigroup FishTrack where
-  append = over2 FishTrack (zipWith (+))
-
-instance Monoid FishTrack where
-  mempty = FishTrack (map fromInt [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
+emptyTrack ∷ FishTrack
+emptyTrack = FishTrack (map fromInt [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
 
 addFish :: Int -> FishTrack -> FishTrack
 addFish f t@(FishTrack track)
@@ -113,7 +110,7 @@ addFish f t@(FishTrack track)
 fillTrack :: List Int -> FishTrack
 fillTrack = go
   where
-  go Nil = mempty
+  go Nil = emptyTrack
   go (x : xs) = addFish x $ go xs
 
 age :: FishTrack -> FishTrack
