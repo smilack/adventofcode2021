@@ -3,16 +3,14 @@ module Test.AdventOfCode.Twenty21.Eight
   ) where
 
 import Prelude
-import AdventOfCode.Twenty21.Eight
-import AdventOfCode.Twenty21.Eight.Segment (Segment(..), Signal, toString, fromString, signal)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
+import AdventOfCode.Twenty21.Eight (Key, Reading, collectData, countMatchingOutputDigits, decodeOutput, is1478, parseInput, solve, digitsToNum)
+import AdventOfCode.Twenty21.Eight.Segment (Segment(..), toString, fromString, signal)
+import Data.Map (fromFoldable)
+import Data.Tuple.Nested ((/\))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -33,6 +31,29 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         parseInput testInput `shouldEqual` [ testParsedInput ]
       it "parses two lines of input" do
         parseInput (testInput <> "\n" <> testInput) `shouldEqual` [ testParsedInput, testParsedInput ]
+      it "recognizes 1s, 4s, 7s, 8s" do
+        is1478 (signal [ A, C, E, D, G, F, B ]) `shouldEqual` true
+        is1478 (signal [ C, D, F, B, E ]) `shouldEqual` false
+        is1478 (signal [ G, C, D, F, A ]) `shouldEqual` false
+        is1478 (signal [ F, B, C, A, D ]) `shouldEqual` false
+        is1478 (signal [ D, A, B ]) `shouldEqual` true
+        is1478 (signal [ C, E, F, A, B, D ]) `shouldEqual` false
+        is1478 (signal [ C, D, F, G, E, B ]) `shouldEqual` false
+        is1478 (signal [ E, A, F, B ]) `shouldEqual` true
+        is1478 (signal [ C, A, G, E, D, B ]) `shouldEqual` false
+        is1478 (signal [ A, B ]) `shouldEqual` true
+      it "counts 1s, 4s, 7s, 8s, in a reading" do
+        countMatchingOutputDigits is1478 [ testParsedInput ] `shouldEqual` 0
+        countMatchingOutputDigits is1478 all1478Input `shouldEqual` 4
+      it "solves a reading" do
+        solve testParsedInput `shouldEqual` solvedTest
+      it "decodes output" do
+        decodeOutput testParsedInput `shouldEqual` 5353
+      it "sums output" do
+        collectData all1478Input `shouldEqual` 1178
+        collectData [ testParsedInput ] `shouldEqual` 5353
+      it "turns array into number" do
+        digitsToNum [ 5, 3, 5, 3 ] `shouldEqual` 5353
 
 testInput :: String
 testInput = "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
@@ -58,3 +79,21 @@ testParsedInput =
       , signal [ C, D, B, A, F ]
       ]
   }
+
+all1478Input :: Array Reading
+all1478Input = parseInput "bgcade acbedgf gbef cef cdbfa ef cbefd afgecd bgdce fbcgde | ef ef fce dgecfba"
+
+solvedTest :: Key
+solvedTest =
+  fromFoldable
+    [ signal [ A, C, E, D, G, F, B ] /\ 8
+    , signal [ C, D, F, B, E ] /\ 5
+    , signal [ G, C, D, F, A ] /\ 2
+    , signal [ F, B, C, A, D ] /\ 3
+    , signal [ D, A, B ] /\ 7
+    , signal [ C, E, F, A, B, D ] /\ 9
+    , signal [ C, D, F, G, E, B ] /\ 6
+    , signal [ E, A, F, B ] /\ 4
+    , signal [ C, A, G, E, D, B ] /\ 0
+    , signal [ A, B ] /\ 1
+    ]

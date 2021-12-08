@@ -4,6 +4,7 @@ module AdventOfCode.Twenty21.Eight.Segment
   , toString
   , fromString
   , signal
+  , empty
   ) where
 
 import Prelude
@@ -23,6 +24,9 @@ type Signal = Set Segment
 
 signal :: forall f. Foldable f => f Segment -> Signal
 signal = fromFoldable
+
+empty :: Signal
+empty = signal []
 
 toString :: Signal -> String
 toString = foldr ((<>) <<< toLower <<< show) ""
