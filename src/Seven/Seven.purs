@@ -20,6 +20,18 @@ import Node.FS.Aff (readTextFile)
 --           all were shifted to that position, there would be the least total
 --           change. Return the sum of how far each moved.
 
+-- Part two: Same except the cost function slope isn't constant (f(x) = x), it's
+--           increasing:
+--             f(x) = x + f(x - 1)
+--             f(0) = 0
+--           Alternatively: f(x) = n(n+1)/2
+--                x
+--              \¯¯¯
+--      f(x) =   \    x
+--               /
+--              /___
+--               i=1
+
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Seven/input"
@@ -37,10 +49,15 @@ parseInput =
     <<< split (Pattern ",")
 
 cumulativeDistanceTo :: Int -> NonEmptyArray Int -> Int
-cumulativeDistanceTo p = sum <<< map (abs <<< (_ - p))
+cumulativeDistanceTo p =
+  sum
+    <<< map (abs <<< (_ - p))
 
 bestPosition :: NonEmptyArray Int -> Int
-bestPosition xs = head $ sortWith (\p -> cumulativeDistanceTo p xs) $ nub xs
+bestPosition xs =
+  head
+    $ sortWith (\p -> cumulativeDistanceTo p xs)
+    $ nub xs
 
 solvePart1 :: String -> Int
 solvePart1 i = cumulativeDistanceTo (bestPosition input) input
