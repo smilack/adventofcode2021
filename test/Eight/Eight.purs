@@ -4,6 +4,7 @@ module Test.AdventOfCode.Twenty21.Eight
 
 import Prelude
 import AdventOfCode.Twenty21.Eight
+import AdventOfCode.Twenty21.Eight.Segment (Segment(..), Signal, toString, signal)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
@@ -18,6 +19,9 @@ import Test.Spec.Runner (runSpec)
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Eight" do
-    pending "parse input"
-    pending "other stuff"
+    describe "Segments" do
+      it "prints a signal as a lowercase alphabetical string" do
+        toString (signal [ A, B, C, D, E, F, G ]) `shouldEqual` "abcdefg"
+        toString (signal [ A, A, A, A, A, A ]) `shouldEqual` "a"
+        toString (signal [ F, E, D ]) `shouldEqual` "def"
 
