@@ -25,6 +25,7 @@ You can edit this file as you like.
   , "spec"
   , "spec-quickcheck"
   , "strings"
+  , "stringutils"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]
