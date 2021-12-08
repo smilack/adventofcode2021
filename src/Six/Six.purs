@@ -2,8 +2,14 @@ module AdventOfCode.Twenty21.Six where
 
 import Prelude
 import Control.Parallel (parSequence)
+import Data.Array (zipWith, modifyAt)
+import Data.BigInt (BigInt, fromInt)
+import Data.Foldable (sum)
+import Data.Function (applyN)
 import Data.Int (fromString)
-import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop, foldl, concat)
+import Data.List (List(..), (:), fromFoldable, catMaybes, length, take, drop)
+import Data.Maybe (Maybe(..))
+import Data.Newtype (class Newtype, over2)
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
 import Effect (Effect)
@@ -30,10 +36,11 @@ main = launchAff_ do
     ages = parseAges input
     chunks = chunksOf 10 ages
   nFishChunks <- parSequence $ map (asyncSimulate 80) chunks
-  nFish' <- bigSim ages
-  -- will need to do partial calculations then re-chunk
   let
-    nFish = foldl (+) 0 nFishChunks
+    nFish = sum nFishChunks
+    track = fillTrack ages
+    track' = ageBy 256 track
+    nFish' = countFish track'
   liftEffect do
     log "Day Six"
     log "Input:"
@@ -44,6 +51,7 @@ main = launchAff_ do
     log "Part 2:"
     log "num fish"
     logShow nFish'
+    logShow track'
 
 parseAges :: String -> List Int
 parseAges =
@@ -54,26 +62,6 @@ parseAges =
 
 asyncSimulate :: Int -> List Int -> Aff Int
 asyncSimulate = (pure <<< length) <.. simulate
-
-bigSim :: List Int -> Aff Int
-bigSim = go 256
-  where
-  go :: Int -> List Int -> Aff Int
-  go 0 ages = pure $ length ages
-  go n ages = do
-    part <- partialSim 16 $ chunksOf 3000 ages
-    liftEffect do
-      log "n"
-      logShow n
-      log "length"
-      logShow $ length $ concat part
-    go (n - 16) $ concat part
-
-  partialSim :: Int -> List (List Int) -> Aff (List (List Int))
-  partialSim days chunks = parSequence $ map (sim days) chunks
-
-  sim :: Int -> List Int -> Aff (List Int)
-  sim = pure <.. simulate
 
 simulate :: Int -> List Int -> List Int
 simulate = go
@@ -99,3 +87,42 @@ chunksOf i ls = map (take i) (build (splitter ls))
   splitter :: forall a. List e -> (List e -> a -> a) -> a -> a
   splitter Nil _ n = n
   splitter l c n = l `c` splitter (drop i l) c n
+
+newtype FishTrack = FishTrack (Array BigInt)
+
+derive instance Newtype FishTrack _
+
+derive instance Eq FishTrack
+
+instance Show FishTrack where
+  show (FishTrack t) = "FishTrack " <> show t
+
+instance Semigroup FishTrack where
+  append = over2 FishTrack (zipWith (+))
+
+instance Monoid FishTrack where
+  mempty = FishTrack (map fromInt [ 0, 0, 0, 0, 0, 0, 0, 0, 0 ])
+
+addFish :: Int -> FishTrack -> FishTrack
+addFish f t@(FishTrack track)
+  | f >= 0 && f <= 8 = case modifyAt f (_ + (fromInt 1)) track of
+      Just track' -> FishTrack track'
+      Nothing -> t
+  | otherwise = t
+
+fillTrack :: List Int -> FishTrack
+fillTrack = go
+  where
+  go Nil = mempty
+  go (x : xs) = addFish x $ go xs
+
+age :: FishTrack -> FishTrack
+age (FishTrack [ d0, d1, d2, d3, d4, d5, d6, d7, d8 ]) =
+  FishTrack [ d1, d2, d3, d4, d5, d6, d7 + d0, d8, d0 ]
+age err = err
+
+countFish :: FishTrack -> BigInt
+countFish (FishTrack a) = sum a
+
+ageBy :: Int -> FishTrack -> FishTrack
+ageBy = applyN age
