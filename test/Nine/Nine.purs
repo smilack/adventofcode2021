@@ -18,6 +18,13 @@ import Test.Spec.Runner (runSpec)
 main :: Effect Unit
 main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Nine" do
-    pending "parse input"
-    pending "other stuff"
+    it "reads input into arrays" do
+      inputToIntArrays testInput1
+        `shouldEqual`
+          [ [ 1, 2, 3 ], [ 4, 5, 6 ], [ 7, 8, 9 ] ]
 
+testInput1 :: String
+testInput1 = "123\n456\n789"
+
+testInput2 :: String
+testInput2 = "2199943210\n3987894921\n9856789892\n8767896789\n9899965678"
