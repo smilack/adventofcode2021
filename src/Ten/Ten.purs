@@ -25,20 +25,29 @@ parseInput =
     <<< fromFoldable
     <<< lines
 
-data OpenClose
-  = Open
-  | Close
+-- checkLine :: List Character -> LineStatus
+-- checkLine line =
+--   where
+--   go (c : cs) =
 
-derive instance Generic OpenClose _
+data LineStatus
+  = Corrupt Character
+  | Incomplete (List Character)
 
-instance Eq OpenClose where
+data CharType
+  = Paren
+  | Bracket
+  | Brace
+  | Angle
+
+derive instance Generic CharType _
+
+instance Eq CharType where
   eq = genericEq
 
 data Character
-  = Paren OpenClose
-  | Bracket OpenClose
-  | Brace OpenClose
-  | Angle OpenClose
+  = Open CharType
+  | Close CharType
 
 derive instance Generic Character _
 
@@ -46,23 +55,27 @@ instance Eq Character where
   eq = genericEq
 
 instance Show Character where
-  show (Paren Open) = "("
-  show (Paren Close) = ")"
-  show (Bracket Open) = "["
-  show (Bracket Close) = "]"
-  show (Brace Open) = "{"
-  show (Brace Close) = "}"
-  show (Angle Open) = "<"
-  show (Angle Close) = ">"
+  show (Open Paren) = "("
+  show (Close Paren) = ")"
+  show (Open Bracket) = "["
+  show (Close Bracket) = "]"
+  show (Open Brace) = "{"
+  show (Close Brace) = "}"
+  show (Open Angle) = "<"
+  show (Close Angle) = ">"
 
 readCharacter :: String -> Maybe Character
 readCharacter = case _ of
-  "(" -> Just $ Paren Open
-  ")" -> Just $ Paren Close
-  "[" -> Just $ Bracket Open
-  "]" -> Just $ Bracket Close
-  "{" -> Just $ Brace Open
-  "}" -> Just $ Brace Close
-  "<" -> Just $ Angle Open
-  ">" -> Just $ Angle Close
+  "(" -> Just $ Open Paren
+  ")" -> Just $ Close Paren
+  "[" -> Just $ Open Bracket
+  "]" -> Just $ Close Bracket
+  "{" -> Just $ Open Brace
+  "}" -> Just $ Close Brace
+  "<" -> Just $ Open Angle
+  ">" -> Just $ Close Angle
   _ -> Nothing
+
+isOpen :: Character -> Boolean
+isOpen (Open _) = true
+isOpen (Close _) = false
