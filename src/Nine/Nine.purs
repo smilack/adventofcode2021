@@ -25,9 +25,9 @@ main = launchAff_ do
     log "Part 1:"
     log "Number of cells:"
     logShow $ foldr (+) 0 $ map length $ parseInput input
-    log "Number of low points:"
-    --317 is too low
-    logShow $ countLowPoints $ parseInput input
+    log "Risk level:"
+    --1486 too high
+    logShow $ assessRisk $ parseInput input
 
 parseInput :: String -> Array (Array Int)
 parseInput = map (catMaybes <<< map fromString <<< toCharArray) <<< lines
@@ -56,11 +56,11 @@ isLowPoint p a = case get p a of
   Nothing -> false
   Just v -> v == minimum (v `cons'` adjacentValues p a)
 
-countLowPoints :: Array (Array Int) -> Int
-countLowPoints heightmap = foldrWithIndex searchRow 0 heightmap
+assessRisk :: Array (Array Int) -> Int
+assessRisk heightmap = foldrWithIndex searchRow 0 heightmap
   where
   searchRow :: Int -> Array Int -> Int -> Int
   searchRow y row total = foldrWithIndex (checkCell y) total row
 
   checkCell :: Int -> Int -> Int -> Int -> Int
-  checkCell y x _ = if isLowPoint { x, y } heightmap then (_ + 1) else identity
+  checkCell y x v = if isLowPoint { x, y } heightmap then (_ + (v + 1)) else identity

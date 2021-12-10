@@ -38,9 +38,9 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
     it "identifies low points" do
       isLowPoint { x: 0, y: 0 } testArrays1 `shouldEqual` true
       isLowPoint { x: 1, y: 1 } testArrays1 `shouldEqual` false
-    it "counts low points" do
-      countLowPoints testArrays1 `shouldEqual` 1
-      countLowPoints (parseInput testInput2) `shouldEqual` 4
+    it "adds low point risk levels" do
+      assessRisk testArrays1 `shouldEqual` 2
+      assessRisk (parseInput testInput2) `shouldEqual` 15
 
 testInput1 :: String
 testInput1 = "123\n456\n789"
