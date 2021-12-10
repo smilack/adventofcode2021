@@ -4,7 +4,7 @@ import Prelude
 import Data.Eq.Generic (genericEq)
 import Data.Foldable (sum)
 import Data.Generic.Rep (class Generic)
-import Data.List (List(..), (:), fromFoldable, catMaybes, reverse)
+import Data.List (List(..), (:), fromFoldable, catMaybes, dropEnd, drop, sort, filter)
 import Data.Maybe (Maybe(..))
 import Data.String.Utils (lines, toCharArray)
 import Data.Show.Generic (genericShow)
@@ -21,7 +21,26 @@ main = launchAff_ do
   liftEffect do
     log "Part 1:"
     log "Total syntax error score:"
-    logShow $ sum $ map (score <<< checkLine) $ parseInput input
+    logShow $ solve1 input
+    log "Part 2:"
+    log "Median autocomplete score:"
+    -- 29184309 too low
+    logShow $ solve2 input
+
+solve1 :: String -> Int
+solve1 =
+  sum
+    <<< map (errorScore <<< checkLine)
+    <<< parseInput
+
+solve2 :: String -> Int
+solve2 =
+  median
+    <<< sort
+    <<< map (completionScore <<< missingCharacters)
+    <<< filter isIncomplete
+    <<< map checkLine
+    <<< parseInput
 
 parseInput :: String -> List (List Character)
 parseInput =
@@ -35,7 +54,7 @@ checkLine line = go line Nil
   where
   go Nil Nil = Valid
 
-  go Nil stack = Incomplete $ reverse stack
+  go Nil stack = Incomplete stack
 
   go (c : cs) Nil =
     if isOpen c then
@@ -51,8 +70,8 @@ checkLine line = go line Nil
     else
       Corrupt c
 
-score :: LineStatus -> Int
-score = case _ of
+errorScore :: LineStatus -> Int
+errorScore = case _ of
   Valid -> 0
   Incomplete _ -> 0
   Corrupt character -> case character of
@@ -61,6 +80,34 @@ score = case _ of
     Close Bracket -> 57
     Close Brace -> 1197
     Close Angle -> 25137
+
+missingCharacters :: LineStatus -> List Character
+missingCharacters = case _ of
+  Valid -> Nil
+  Corrupt _ -> Nil
+  Incomplete chars -> go chars
+  where
+  go Nil = Nil
+  go (c : cs) = invert c : go cs
+
+completionScore :: List Character -> Int
+completionScore = go 0
+  where
+  go score Nil = score
+  go score (c : cs) = go (5 * score + charScore c) cs
+
+  charScore = case _ of
+    Open _ -> 0
+    Close Paren -> 1
+    Close Bracket -> 2
+    Close Brace -> 3
+    Close Angle -> 4
+
+median :: List Int -> Int
+median = case _ of
+  Nil -> 0
+  (x : Nil) -> x
+  xs -> median $ dropEnd 1 $ drop 1 xs
 
 data LineStatus
   = Corrupt Character
@@ -74,6 +121,10 @@ instance Eq LineStatus where
 
 instance Show LineStatus where
   show = genericShow
+
+isIncomplete :: LineStatus -> Boolean
+isIncomplete (Incomplete _) = true
+isIncomplete _ = false
 
 data CharType
   = Paren
@@ -124,3 +175,7 @@ isOpen (Close _) = false
 closes :: Character -> Character -> Boolean
 closes (Close c) (Open o) = c == o
 closes _ _ = false
+
+invert :: Character -> Character
+invert (Open c) = Close c
+invert (Close c) = Open c

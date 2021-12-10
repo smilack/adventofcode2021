@@ -5,7 +5,7 @@ module Test.AdventOfCode.Twenty21.Ten
 import Prelude
 import AdventOfCode.Twenty21.Ten
 import Data.Foldable (sum)
-import Data.List (List(..), (:))
+import Data.List (List(..), (:), reverse, sort)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Test.QuickCheck ((===), Result)
@@ -35,9 +35,21 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
         `shouldEqual`
           testIncompleteLinesStatus
     it "calculates syntax error scores" do
-      (sum $ map (score <<< checkLine) $ parseInput testInput)
+      (sum $ map (errorScore <<< checkLine) $ parseInput testInput)
         `shouldEqual`
           26397
+    it "finds missing characters" do
+      (map (missingCharacters <<< checkLine) $ parseInput testIncompleteLines)
+        `shouldEqual`
+          parseInput testCompletedLines
+    it "calculates autocomplete line scores" do
+      ( map (completionScore <<< missingCharacters <<< checkLine)
+          $ parseInput testIncompleteLines
+      )
+        `shouldEqual`
+          (288957 : 5566 : 1480781 : 995444 : 294 : Nil)
+    it "finds the median autocomplete score" do
+      solve2 testIncompleteLines `shouldEqual` 288957
 
 testInput :: String
 testInput =
@@ -84,9 +96,18 @@ testIncompleteLines =
 
 testIncompleteLinesStatus :: List LineStatus
 testIncompleteLinesStatus =
-  Incomplete (Open Bracket : Open Paren : Open Brace : Open Paren : Open Bracket : Open Bracket : Open Brace : Open Brace : Nil)
-    : Incomplete (Open Paren : Open Brace : Open Bracket : Open Angle : Open Brace : Open Paren : Nil)
-    : Incomplete (Open Paren : Open Paren : Open Paren : Open Paren : Open Angle : Open Brace : Open Angle : Open Brace : Open Brace : Nil)
-    : Incomplete (Open Angle : Open Brace : Open Bracket : Open Brace : Open Bracket : Open Brace : Open Brace : Open Bracket : Open Bracket : Nil)
-    : Incomplete (Open Angle : Open Brace : Open Paren : Open Bracket : Nil)
+  Incomplete (reverse (Open Bracket : Open Paren : Open Brace : Open Paren : Open Bracket : Open Bracket : Open Brace : Open Brace : Nil))
+    : Incomplete (reverse (Open Paren : Open Brace : Open Bracket : Open Angle : Open Brace : Open Paren : Nil))
+    : Incomplete (reverse (Open Paren : Open Paren : Open Paren : Open Paren : Open Angle : Open Brace : Open Angle : Open Brace : Open Brace : Nil))
+    : Incomplete (reverse (Open Angle : Open Brace : Open Bracket : Open Brace : Open Bracket : Open Brace : Open Brace : Open Bracket : Open Bracket : Nil))
+    : Incomplete (reverse (Open Angle : Open Brace : Open Paren : Open Bracket : Nil))
     : Nil
+
+testCompletedLines :: String
+testCompletedLines =
+  """}}]])})]
+)}>]})
+}}>}>))))
+]]}}]}]}>
+])}>"""
+
