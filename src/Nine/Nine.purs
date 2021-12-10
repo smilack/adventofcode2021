@@ -1,14 +1,14 @@
 module AdventOfCode.Twenty21.Nine where
 
 import Prelude
-import Data.Array ((!!), catMaybes, take, reverse, sort, groupAll, length, replicate, concat, range)
+import Data.Array ((!!), catMaybes, take, reverse, sort, groupAll, length, concat, range, sortWith, zipWith)
 import Data.Array.NonEmpty (toArray)
 import Data.Foldable (minimum, foldr)
 import Data.FoldableWithIndex (foldrWithIndex)
 import Data.Int (fromString)
 import Data.List (List(..), (:))
-import Data.List (fromFoldable, toUnfoldable) as L
-import Data.Map (Map, empty, values, member, insert, union, fromFoldable, lookup)
+import Data.List (fromFoldable, toUnfoldable, filter) as L
+import Data.Map (Map, empty, values, member, union, fromFoldable, lookup, difference)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Utils (toCharArray, lines)
 import Data.Tuple.Nested ((/\))
@@ -27,6 +27,9 @@ main = launchAff_ do
     log "Part 1:"
     log "Risk level:"
     logShow $ assessRisk $ parseInput input
+    log "Part 2:"
+    log "Product of sizes of 3 largest basins:"
+    logShow $ productOfLargestBasins $ identifyBasins $ parseInput input
 
 parseInput :: String -> Array (Array Int)
 parseInput = map (catMaybes <<< map fromString <<< toCharArray) <<< lines
@@ -50,6 +53,16 @@ adjacentPoints { x, y } =
   , { x, y: y - 1 }
   ]
 
+adjacentPointsAndValues :: Point -> Array (Array Int) -> Array { point :: Point, value :: Int }
+adjacentPointsAndValues p heightmap =
+  catMaybes $ zipWith zipFn points values
+  where
+  zipFn point (Just value) = Just { point, value }
+  zipFn _ Nothing = Nothing
+  values = flap getFns heightmap
+  getFns = getAll p
+  points = adjacentPoints p
+
 isLowPoint :: Point -> Array (Array Int) -> Boolean
 isLowPoint p a = case get p a of
   Nothing -> false
@@ -66,15 +79,19 @@ assessRisk heightmap = foldrWithIndex searchRow 0 heightmap
 
 lowestNeighbor :: Point -> Array (Array Int) -> Point
 lowestNeighbor p heightmap =
-  if isLowPoint p then
+  if isLowPoint p heightmap then
     p
   else
     let
-      points = 
+      neighbors = adjacentPointsAndValues p heightmap
+      sorted = sortWith (_.value) neighbors
     in
+      case sorted !! 0 of
+        Just { point } -> point
+        Nothing -> p
 
 identifyBasins :: Array (Array Int) -> Map Point Point
-identifyBasins heightmap = go points empty
+identifyBasins heightmap = difference (go points empty) nines
   where
   go :: List Point -> Map Point Point -> Map Point Point
   go Nil m = m
@@ -82,9 +99,14 @@ identifyBasins heightmap = go points empty
 
   identify :: Point -> List Point -> Map Point Point -> Map Point Point
   identify p ps m =
-    if p `member` m then
-      union m
-        $ mkMap (fromMaybe nowhere $ lookup p m) ps
+    if get p heightmap == Just 9 then
+      m
+    else if p `member` m then
+      if ps == Nil then
+        m
+      else
+        union m
+          $ mkMap (fromMaybe nowhere $ lookup p m) ps
     else if isLowPoint p heightmap then
       union m $ mkMap p (p : ps)
     else
@@ -101,6 +123,11 @@ identifyBasins heightmap = go points empty
   xs = range 0 (length (fromMaybe [] $ heightmap !! 0) - 1)
   ys = range 0 (length heightmap - 1)
   points = L.fromFoldable $ product (\x y -> { x, y }) xs ys
+
+  nines =
+    fromFoldable
+      $ map (_ /\ nowhere)
+      $ L.filter (\p -> get p heightmap == Just 9) points
 
 productOfLargestBasins :: Map Point Point -> Int
 productOfLargestBasins =

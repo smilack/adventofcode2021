@@ -5,6 +5,8 @@ module Test.AdventOfCode.Twenty21.Nine
 import Prelude
 import AdventOfCode.Twenty21.Nine
 import Data.Array (intersect, length, sort)
+import Data.List (groupAll, length) as L
+import Data.Map (values)
 import Data.Maybe (Maybe(..))
 import Data.String (split)
 import Data.String.Pattern (Pattern(..))
@@ -48,6 +50,22 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       product (\x y -> { x, y }) [ 0, 1 ] [ 0, 1 ]
         `shouldEqual`
           [ { x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }, { x: 1, y: 1 } ]
+    it "identifies basins" do
+      ( L.length
+          $ L.groupAll
+          $ values
+          $ identifyBasins
+          $ parseInput testInput2
+      )
+        `shouldEqual`
+          4
+    it "calculates product of 3 largest basins" do
+      ( productOfLargestBasins
+          $ identifyBasins
+          $ parseInput testInput2
+      )
+        `shouldEqual`
+          1134
 
 testInput1 :: String
 testInput1 = "123\n456\n789"
