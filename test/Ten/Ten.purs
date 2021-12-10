@@ -19,6 +19,20 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
   describe "Day Ten" do
     it "parses input" do
       parseInput testInput `shouldEqual` parsedTestInput
+    it "recognizes corrupt lines" do
+      map checkLine (parseInput testCorruptLines)
+        `shouldEqual`
+          ( (Corrupt $ Close Brace)
+              : (Corrupt $ Close Paren)
+              : (Corrupt $ Close Bracket)
+              : (Corrupt $ Close Paren)
+              : (Corrupt $ Close Angle)
+              : Nil
+          )
+    it "recognizes incomplete lines" do
+      map checkLine (parseInput testIncompleteLines)
+        `shouldEqual`
+          testIncompleteLinesStatus
 
 testInput :: String
 testInput =
@@ -45,4 +59,29 @@ parsedTestInput =
     : (Open Bracket : Open Angle : Open Paren : Open Angle : Open Paren : Open Angle : Open Paren : Open Angle : Open Brace : Close Brace : Close Paren : Close Paren : Close Angle : Open Angle : Open Paren : Open Bracket : Close Bracket : Open Paren : Open Bracket : Close Bracket : Open Paren : Close Paren : Nil)
     : (Open Angle : Open Brace : Open Paren : Open Bracket : Open Paren : Open Bracket : Open Bracket : Open Paren : Open Angle : Close Angle : Open Paren : Close Paren : Close Paren : Open Brace : Close Brace : Close Bracket : Close Angle : Open Paren : Open Angle : Open Angle : Open Brace : Open Brace : Nil)
     : (Open Angle : Open Brace : Open Paren : Open Bracket : Open Brace : Open Brace : Close Brace : Close Brace : Open Bracket : Open Angle : Open Bracket : Open Bracket : Open Bracket : Open Angle : Close Angle : Open Brace : Close Brace : Close Bracket : Close Bracket : Close Bracket : Close Angle : Open Bracket : Close Bracket : Close Bracket : Nil)
+    : Nil
+
+testCorruptLines :: String
+testCorruptLines =
+  """{([(<{}[<>[]}>{[]{[(<()>
+[[<[([]))<([[{}[[()]]]
+[{[{({}]{}}([{[{{{}}([]
+[<(<(<(<{}))><([]([]()
+<{([([[(<>()){}]>(<<{{"""
+
+testIncompleteLines :: String
+testIncompleteLines =
+  """[({([[{{
+({[<{(
+((((<{<{{
+<{[{[{{[[
+<{(["""
+
+testIncompleteLinesStatus :: List LineStatus
+testIncompleteLinesStatus =
+  Incomplete (Open Bracket : Open Paren : Open Brace : Open Paren : Open Bracket : Open Bracket : Open Brace : Open Brace : Nil)
+    : Incomplete (Open Paren : Open Brace : Open Bracket : Open Angle : Open Brace : Open Paren : Nil)
+    : Incomplete (Open Paren : Open Paren : Open Paren : Open Paren : Open Angle : Open Brace : Open Angle : Open Brace : Open Brace : Nil)
+    : Incomplete (Open Angle : Open Brace : Open Bracket : Open Brace : Open Bracket : Open Brace : Open Brace : Open Bracket : Open Bracket : Nil)
+    : Incomplete (Open Angle : Open Brace : Open Paren : Open Bracket : Nil)
     : Nil

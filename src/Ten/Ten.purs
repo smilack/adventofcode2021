@@ -3,9 +3,10 @@ module AdventOfCode.Twenty21.Ten where
 import Prelude
 import Data.Eq.Generic (genericEq)
 import Data.Generic.Rep (class Generic)
-import Data.List (List(..), (:), fromFoldable, catMaybes)
+import Data.List (List(..), (:), fromFoldable, catMaybes, reverse)
 import Data.Maybe (Maybe(..))
 import Data.String.Utils (lines, toCharArray)
+import Data.Show.Generic (genericShow)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
 import Effect.Class (liftEffect)
@@ -25,14 +26,39 @@ parseInput =
     <<< fromFoldable
     <<< lines
 
--- checkLine :: List Character -> LineStatus
--- checkLine line =
---   where
---   go (c : cs) =
+checkLine :: List Character -> LineStatus
+checkLine line = go line Nil
+  where
+  go Nil Nil = Valid
+
+  go Nil stack = Incomplete $ reverse stack
+
+  go (c : cs) Nil =
+    if isOpen c then
+      go cs (c : Nil)
+    else
+      Corrupt c
+
+  go (c : cs) (s : stack) =
+    if isOpen c then
+      go cs (c : s : stack)
+    else if c `closes` s then
+      go cs stack
+    else
+      Corrupt c
 
 data LineStatus
   = Corrupt Character
   | Incomplete (List Character)
+  | Valid
+
+derive instance Generic LineStatus _
+
+instance Eq LineStatus where
+  eq = genericEq
+
+instance Show LineStatus where
+  show = genericShow
 
 data CharType
   = Paren
@@ -79,3 +105,7 @@ readCharacter = case _ of
 isOpen :: Character -> Boolean
 isOpen (Open _) = true
 isOpen (Close _) = false
+
+closes :: Character -> Character -> Boolean
+closes (Close c) (Open o) = c == o
+closes _ _ = false
