@@ -5,6 +5,7 @@ import Data.Array ((!!), catMaybes)
 import Data.Foldable (minimum)
 import Data.FoldableWithIndex (foldrWithIndex)
 import Data.Int (fromString)
+import Data.List (List(..), (:))
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Utils (toCharArray, lines)
 import Effect (Effect)
@@ -57,3 +58,16 @@ assessRisk heightmap = foldrWithIndex searchRow 0 heightmap
 
   checkCell :: Int -> Int -> Int -> Int -> Int
   checkCell y x v = if isLowPoint { x, y } heightmap then (_ + v + 1) else identity
+
+type Basin = { nadir :: Point, cells :: List Point }
+
+findBasins :: Array (Array Int) -> Array Basin
+findBasins = go []
+  where
+  go :: Array (Array (Maybe Point)) -> Array Basin -> Array Basin
+  go points basins =
+
+  addPoint :: Point -> Basin -> Basin
+  addPoint p b = b { cells = p : b.cells }
+
+  findNadir :: Point ->
