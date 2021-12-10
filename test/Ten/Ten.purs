@@ -4,6 +4,7 @@ module Test.AdventOfCode.Twenty21.Ten
 
 import Prelude (Unit, discard, map, ($), (<<<))
 import AdventOfCode.Twenty21.Ten
+import Data.BigInt (fromInt)
 import Data.Foldable (sum)
 import Data.List (List(..), (:), reverse)
 import Effect (Effect)
@@ -45,10 +46,10 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
           $ parseInput testIncompleteLines
       )
         `shouldEqual`
-          (288957 : 5566 : 1480781 : 995444 : 294 : Nil)
+          (map fromInt (288957 : 5566 : 1480781 : 995444 : 294 : Nil))
     it "finds the median autocomplete score" do
-      solve2 testIncompleteLines `shouldEqual` 288957
-      solve2 testInput `shouldEqual` 288957
+      solve2 testIncompleteLines `shouldEqual` fromInt 288957
+      solve2 testInput `shouldEqual` fromInt 288957
 
 testInput :: String
 testInput =

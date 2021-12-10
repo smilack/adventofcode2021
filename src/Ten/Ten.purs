@@ -1,6 +1,7 @@
 module AdventOfCode.Twenty21.Ten where
 
 import Prelude
+import Data.BigInt (BigInt, fromInt)
 import Data.Eq.Generic (genericEq)
 import Data.Foldable (sum)
 import Data.Generic.Rep (class Generic)
@@ -24,7 +25,6 @@ main = launchAff_ do
     logShow $ solve1 input
     log "Part 2:"
     log "Median autocomplete score:"
-    -- 29184309 too low
     logShow $ solve2 input
 
 solve1 :: String -> Int
@@ -33,7 +33,7 @@ solve1 =
     <<< map (errorScore <<< checkLine)
     <<< parseInput
 
-solve2 :: String -> Int
+solve2 :: String -> BigInt
 solve2 =
   median
     <<< sort
@@ -90,22 +90,23 @@ missingCharacters = case _ of
   go Nil = Nil
   go (c : cs) = invert c : go cs
 
-completionScore :: List Character -> Int
-completionScore = go 0
+completionScore :: List Character -> BigInt
+completionScore = go $ fromInt 0
   where
   go score Nil = score
-  go score (c : cs) = go (5 * score + charScore c) cs
+  go score (c : cs) =
+    go (fromInt 5 * score + charScore c) cs
 
-  charScore = case _ of
+  charScore = fromInt <<< case _ of
     Open _ -> 0
     Close Paren -> 1
     Close Bracket -> 2
     Close Brace -> 3
     Close Angle -> 4
 
-median :: List Int -> Int
+median :: List BigInt -> BigInt
 median = case _ of
-  Nil -> 0
+  Nil -> fromInt 0
   (x : Nil) -> x
   xs -> median $ dropEnd 1 $ drop 1 xs
 
