@@ -91,7 +91,7 @@ lowestNeighbor p heightmap =
         Nothing -> p
 
 identifyBasins :: Array (Array Int) -> Map Point Point
-identifyBasins heightmap = difference (go points empty) nines
+identifyBasins heightmap = go points empty
   where
   go :: List Point -> Map Point Point -> Map Point Point
   go Nil m = m
@@ -122,12 +122,10 @@ identifyBasins heightmap = difference (go points empty) nines
 
   xs = range 0 (length (fromMaybe [] $ heightmap !! 0) - 1)
   ys = range 0 (length heightmap - 1)
-  points = L.fromFoldable $ product (\x y -> { x, y }) xs ys
-
-  nines =
-    fromFoldable
-      $ map (_ /\ nowhere)
-      $ L.filter (\p -> get p heightmap == Just 9) points
+  points =
+    L.filter (\p -> get p heightmap /= Just 9)
+      $ L.fromFoldable
+      $ product (\x y -> { x, y }) xs ys
 
 productOfLargestBasins :: Map Point Point -> Int
 productOfLargestBasins =
