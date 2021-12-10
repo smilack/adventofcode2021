@@ -2,16 +2,14 @@ module Test.AdventOfCode.Twenty21.Ten
   ( main
   ) where
 
-import Prelude
+import Prelude (Unit, discard, map, ($), (<<<))
 import AdventOfCode.Twenty21.Ten
 import Data.Foldable (sum)
-import Data.List (List(..), (:), reverse, sort)
+import Data.List (List(..), (:), reverse)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
-import Test.QuickCheck ((===), Result)
-import Test.Spec (Spec, pending, describe, it)
+import Test.Spec (describe, it)
 import Test.Spec.Assertions (shouldEqual)
-import Test.Spec.QuickCheck (quickCheck)
 import Test.Spec.Reporter.Console (consoleReporter)
 import Test.Spec.Runner (runSpec)
 
@@ -50,6 +48,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
           (288957 : 5566 : 1480781 : 995444 : 294 : Nil)
     it "finds the median autocomplete score" do
       solve2 testIncompleteLines `shouldEqual` 288957
+      solve2 testInput `shouldEqual` 288957
 
 testInput :: String
 testInput =
