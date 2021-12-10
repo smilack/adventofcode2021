@@ -4,6 +4,7 @@ module Test.AdventOfCode.Twenty21.Ten
 
 import Prelude
 import AdventOfCode.Twenty21.Ten
+import Data.Foldable (sum)
 import Data.List (List(..), (:))
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -33,6 +34,10 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
       map checkLine (parseInput testIncompleteLines)
         `shouldEqual`
           testIncompleteLinesStatus
+    it "calculates syntax error scores" do
+      (sum $ map (score <<< checkLine) $ parseInput testInput)
+        `shouldEqual`
+          26397
 
 testInput :: String
 testInput =

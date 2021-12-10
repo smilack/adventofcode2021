@@ -2,6 +2,7 @@ module AdventOfCode.Twenty21.Ten where
 
 import Prelude
 import Data.Eq.Generic (genericEq)
+import Data.Foldable (sum)
 import Data.Generic.Rep (class Generic)
 import Data.List (List(..), (:), fromFoldable, catMaybes, reverse)
 import Data.Maybe (Maybe(..))
@@ -17,7 +18,10 @@ import Node.FS.Aff (readTextFile)
 main :: Effect Unit
 main = launchAff_ do
   input <- readTextFile UTF8 "./src/Ten/input"
-  liftEffect $ log input
+  liftEffect do
+    log "Part 1:"
+    log "Total syntax error score:"
+    logShow $ sum $ map (score <<< checkLine) $ parseInput input
 
 parseInput :: String -> List (List Character)
 parseInput =
@@ -46,6 +50,17 @@ checkLine line = go line Nil
       go cs stack
     else
       Corrupt c
+
+score :: LineStatus -> Int
+score = case _ of
+  Valid -> 0
+  Incomplete _ -> 0
+  Corrupt character -> case character of
+    Open _ -> 0
+    Close Paren -> 3
+    Close Bracket -> 57
+    Close Brace -> 1197
+    Close Angle -> 25137
 
 data LineStatus
   = Corrupt Character
