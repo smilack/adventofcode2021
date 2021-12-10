@@ -1,15 +1,11 @@
 module AdventOfCode.Twenty21.Nine where
 
 import Prelude
-import Data.Array ((!!), catMaybes, length)
-import Data.Array.NonEmpty (cons')
-import Data.Foldable (foldr)
+import Data.Array ((!!), catMaybes)
+import Data.Foldable (minimum)
 import Data.FoldableWithIndex (foldrWithIndex)
 import Data.Int (fromString)
-import Data.Maybe (Maybe(..))
-import Data.Semigroup.Foldable (minimum)
-import Data.String (split)
-import Data.String.Pattern (Pattern(..))
+import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String.Utils (toCharArray, lines)
 import Effect (Effect)
 import Effect.Aff (launchAff_)
@@ -23,10 +19,7 @@ main = launchAff_ do
   input <- readTextFile UTF8 "./src/Nine/input"
   liftEffect do
     log "Part 1:"
-    log "Number of cells:"
-    logShow $ foldr (+) 0 $ map length $ parseInput input
     log "Risk level:"
-    --1486 too high
     logShow $ assessRisk $ parseInput input
 
 parseInput :: String -> Array (Array Int)
@@ -54,7 +47,7 @@ adjacentPoints { x, y } =
 isLowPoint :: Point -> Array (Array Int) -> Boolean
 isLowPoint p a = case get p a of
   Nothing -> false
-  Just v -> v == minimum (v `cons'` adjacentValues p a)
+  Just v -> v < fromMaybe 9 (minimum $ adjacentValues p a)
 
 assessRisk :: Array (Array Int) -> Int
 assessRisk heightmap = foldrWithIndex searchRow 0 heightmap
@@ -63,4 +56,4 @@ assessRisk heightmap = foldrWithIndex searchRow 0 heightmap
   searchRow y row total = foldrWithIndex (checkCell y) total row
 
   checkCell :: Int -> Int -> Int -> Int -> Int
-  checkCell y x v = if isLowPoint { x, y } heightmap then (_ + (v + 1)) else identity
+  checkCell y x v = if isLowPoint { x, y } heightmap then (_ + v + 1) else identity
