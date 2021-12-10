@@ -41,6 +41,13 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
     it "adds low point risk levels" do
       assessRisk testArrays1 `shouldEqual` 2
       assessRisk (parseInput testInput2) `shouldEqual` 15
+    it "makes cartesian products" do
+      product (\a b -> [ a, b ]) [ 1, 2 ] [ 3, 4 ]
+        `shouldEqual`
+          [ [ 1, 3 ], [ 1, 4 ], [ 2, 3 ], [ 2, 4 ] ]
+      product (\x y -> { x, y }) [ 0, 1 ] [ 0, 1 ]
+        `shouldEqual`
+          [ { x: 0, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 0 }, { x: 1, y: 1 } ]
 
 testInput1 :: String
 testInput1 = "123\n456\n789"
