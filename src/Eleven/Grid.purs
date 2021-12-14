@@ -3,6 +3,8 @@ module AdventOfCode.Twenty21.Eleven.Grid
   , Point
   , fromSize
   , fromSizeWithDefault
+  , get
+  , set
   ) where
 
 import Prelude

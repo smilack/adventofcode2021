@@ -31,6 +31,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
     functorLaws
     functorWithIndexLaws
     foldingAndMapping
+    getAndSet
 
 functorLaws :: Spec Unit
 functorLaws = do
@@ -104,3 +105,34 @@ foldingAndMapping = do
   gridAsc =
     mapWithIndex (\{ x, y } _ -> x + 2 * y)
       $ fromSizeWithDefault { width: 2, height: 2 } 0
+
+getAndSet :: Spec Unit
+getAndSet = do
+  describe "Get/Set" do
+    it "Gets values" do
+      get { x: 0, y: 0 } gridAsc1 `shouldEqual` Just 0
+      get { x: 1, y: 0 } gridAsc1 `shouldEqual` Just 1
+      get { x: 0, y: 1 } gridAsc1 `shouldEqual` Just 2
+      get { x: 1, y: 1 } gridAsc1 `shouldEqual` Just 3
+      get { x: -1, y: -1 } gridAsc1 `shouldEqual` Nothing
+    it "Sets values" do
+      let
+        gridAsc1' = do
+          a <- set { x: 0, y: 0 } 1 gridAsc1
+          b <- set { x: 1, y: 0 } 2 a
+          c <- set { x: 0, y: 1 } 3 b
+          set { x: 1, y: 1 } 4 c
+        gridAsc1'' = join $ map (set { x: -1, y: -1 } 5) gridAsc1'
+      gridAsc1' `shouldEqual` Just gridAsc2
+      gridAsc1'' `shouldEqual` Nothing
+
+  where
+  gridAsc1 :: Grid Int
+  gridAsc1 =
+    mapWithIndex (\{ x, y } _ -> x + 2 * y)
+      $ fromSizeWithDefault { width: 2, height: 2 } 0
+
+  gridAsc2 :: Grid Int
+  gridAsc2 =
+    mapWithIndex (\{ x, y } v -> x + 2 * y + v)
+      $ fromSizeWithDefault { width: 2, height: 2 } 1
