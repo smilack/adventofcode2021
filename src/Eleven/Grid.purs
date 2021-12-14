@@ -3,17 +3,20 @@ module AdventOfCode.Twenty21.Eleven.Grid
   , Point
   , fromSize
   , fromSizeWithDefault
+  , fromArrays
   , get
   , set
   ) where
 
 import Prelude
-import Data.Array (fromFoldable) as Array
-import Data.Array.NonEmpty (NonEmptyArray, (!!), replicate, range, updateAt)
+import Data.Array (nub, head, length, fromFoldable)
+import Data.Array.NonEmpty (NonEmptyArray, (!!), replicate, range, updateAt, fromArray)
 import Data.Foldable (class Foldable, foldMap, foldrDefault, foldlDefault, fold)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldrWithIndexDefault, foldlWithIndexDefault)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
 import Data.Maybe (Maybe(..))
+import Data.Traversable (traverse)
+import Control.Alternative (guard)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
 import Test.QuickCheck.Gen (chooseInt)
 
@@ -37,7 +40,7 @@ instance Eq a => Eq (Grid a) where
 instance Show a => Show (Grid a) where
   show (Grid { width, height } rows) =
     "Grid (" <> show width <> " x " <> show height <> ")" <>
-      show (Array.fromFoldable $ map Array.fromFoldable rows)
+      show (fromFoldable $ map fromFoldable rows)
 
 instance Arbitrary a => Arbitrary (Grid a) where
   arbitrary = do
@@ -82,6 +85,21 @@ fromSizeWithDefault size@{ width, height } a = Grid size rows
 fromSize :: forall m. Monoid m => Size -> Grid m
 fromSize size = fromSizeWithDefault size mempty
 
+fromArrays :: forall a. Array (Array a) -> Maybe (Grid a)
+fromArrays arrs = do
+  guard $ length lens == 1
+  size <- msize
+  nearrs <- fromArray =<< traverse fromArray arrs
+  pure $ Grid size nearrs
+
+  where
+  lens = nub $ map length arrs
+
+  msize = do
+    let height = length arrs
+    width <- head lens
+    pure { width, height }
+
 ----------------
 -- Operations --
 ----------------
@@ -98,3 +116,4 @@ set { x, y } a (Grid size rows) = grid'
     row' <- updateAt x a row
     rows' <- updateAt y row' rows
     pure $ Grid size rows'
+

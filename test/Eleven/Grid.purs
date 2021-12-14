@@ -32,6 +32,7 @@ main = launchAff_ $ runSpec [ consoleReporter ] do
     functorWithIndexLaws
     foldingAndMapping
     getAndSet
+    arrayConstruction
 
 functorLaws :: Spec Unit
 functorLaws = do
@@ -126,13 +127,23 @@ getAndSet = do
       gridAsc1' `shouldEqual` Just gridAsc2
       gridAsc1'' `shouldEqual` Nothing
 
-  where
-  gridAsc1 :: Grid Int
-  gridAsc1 =
-    mapWithIndex (\{ x, y } _ -> x + 2 * y)
-      $ fromSizeWithDefault { width: 2, height: 2 } 0
+gridAsc1 :: Grid Int
+gridAsc1 =
+  mapWithIndex (\{ x, y } _ -> x + 2 * y)
+    $ fromSizeWithDefault { width: 2, height: 2 } 0
 
-  gridAsc2 :: Grid Int
-  gridAsc2 =
-    mapWithIndex (\{ x, y } v -> x + 2 * y + v)
-      $ fromSizeWithDefault { width: 2, height: 2 } 1
+gridAsc2 :: Grid Int
+gridAsc2 =
+  mapWithIndex (\{ x, y } v -> x + 2 * y + v)
+    $ fromSizeWithDefault { width: 2, height: 2 } 1
+
+arrayConstruction :: Spec Unit
+arrayConstruction = do
+  it "Constructs from valid arrays" do
+    fromArrays [ [ 0, 1 ], [ 2, 3 ] ] `shouldEqual` Just gridAsc1
+    fromArrays [ [ 1, 2 ], [ 3, 4 ] ] `shouldEqual` Just gridAsc2
+  it "Rejects non-square matrices" do
+    fromArrays [ [ 0 ], [ 1, 2 ] ] `shouldEqual` Nothing
+  it "Rejects empty arrays" do
+    fromArrays ([ [] ] :: Array (Array Int)) `shouldEqual` Nothing
+    fromArrays ([] :: Array (Array Int)) `shouldEqual` Nothing

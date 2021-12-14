@@ -8,6 +8,7 @@ You can edit this file as you like.
   , "arrays"
   , "bigints"
   , "console"
+  , "control"
   , "effect"
   , "foldable-traversable"
   , "integers"
