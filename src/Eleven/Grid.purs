@@ -9,15 +9,41 @@ module AdventOfCode.Twenty21.Eleven.Grid
   ) where
 
 import Prelude
+import Data.Array (fromFoldable) as Array
 import Data.Array.NonEmpty (NonEmptyArray, (!!), replicate, range, updateAt)
 import Data.Foldable (class Foldable, foldl, foldr, foldMap, foldrDefault, foldlDefault)
 import Data.Maybe (Maybe(..))
+import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
+import Test.QuickCheck.Gen (chooseInt)
 
 type Point = { x :: Int, y :: Int }
 
 type Size = { width :: Int, height :: Int }
 
 data Grid a = Grid Size (NonEmptyArray (NonEmptyArray a))
+
+-- instance Foldable Grid where
+--   foldMap f g = 
+--   foldl = foldlDefault
+--   foldr = foldrDefault
+
+instance Eq a => Eq (Grid a) where
+  eq (Grid s1 r1) (Grid s2 r2) = s1 == s2 && r1 == r2
+
+instance Show a => Show (Grid a) where
+  show (Grid { width, height } rows) =
+    "Grid (" <> show width <> " x " <> show height <> ")" <>
+      show (Array.fromFoldable $ map Array.fromFoldable rows)
+
+instance Arbitrary a => Arbitrary (Grid a) where
+  arbitrary = do
+    width <- chooseInt 1 100
+    height <- chooseInt 1 100
+    value <- arbitrary
+    pure $ fromSizeWithDefault { width, height } value
+
+instance Functor Grid where
+  map f (Grid size rows) = Grid size (map (map f) rows)
 
 fromSizeWithDefault :: forall a. Size -> a -> Grid a
 fromSizeWithDefault size@{ width, height } a = Grid size rows
@@ -51,14 +77,6 @@ set { x, y } a (Grid size rows) = grid'
     row' <- updateAt x a row
     rows' <- updateAt y row' rows
     pure $ Grid size rows'
-
--- instance Foldable Grid where
---   foldMap f g = 
---   foldl = foldlDefault
---   foldr = foldrDefault
-
--- instance Functor Grid where
---   map f g =
 
 ----------------- old stuff -----------------
 
