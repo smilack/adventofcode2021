@@ -6,15 +6,17 @@ module AdventOfCode.Twenty21.Eleven.Grid
   , fromArrays
   , get
   , set
+  , adjacent4
+  , adjacent8
   ) where
 
 import Prelude
-import Data.Array (nub, head, length, fromFoldable)
-import Data.Array.NonEmpty (NonEmptyArray, (!!), replicate, range, updateAt, fromArray)
+import Data.Array (nub, head, length, fromFoldable, concat, filter, range)
+import Data.Array.NonEmpty (NonEmptyArray, (!!), replicate, updateAt, fromArray)
 import Data.Foldable (class Foldable, foldMap, foldrDefault, foldlDefault, fold)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldrWithIndexDefault, foldlWithIndexDefault)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldrWithIndexDefault, foldlWithIndexDefault)
 import Data.FunctorWithIndex (class FunctorWithIndex, mapWithIndex)
-import Data.Maybe (Maybe(..))
+import Data.Maybe (Maybe)
 import Data.Traversable (traverse)
 import Control.Alternative (guard)
 import Test.QuickCheck.Arbitrary (class Arbitrary, arbitrary)
@@ -117,3 +119,35 @@ set { x, y } a (Grid size rows) = grid'
     rows' <- updateAt y row' rows
     pure $ Grid size rows'
 
+adjacent4 :: forall a. Point -> Grid a -> Array Point
+adjacent4 { x, y } (Grid size _) =
+  filter (valid size) allPoints
+  where
+  allPoints =
+    [ { x: inc x, y }
+    , { x: dec x, y }
+    , { x, y: inc y }
+    , { x, y: dec y }
+    ]
+
+adjacent8 :: forall a. Point -> Grid a -> Array Point
+adjacent8 p (Grid size _) =
+  filter (\p' -> p' /= p && valid size p') allPoints
+  where
+  allPoints =
+    product
+      (range (dec p.x) (inc p.x))
+      (range (dec p.y) (inc p.y))
+
+  product xs ys =
+    concat $ map (\x -> map (\y -> { x, y }) ys) xs
+
+valid :: Size -> Point -> Boolean
+valid { width, height } { x, y } =
+  x >= 0 && x < width && y >= 0 && y < height
+
+dec :: Int -> Int
+dec = (_ - 1)
+
+inc :: Int -> Int
+inc = (_ + 1)
